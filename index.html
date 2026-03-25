@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Family Feud & Domino Bingo - Fully Working Dice! 🎲</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #95f5f5 0%, #0dacd4 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 30%, rgba(255,255,200,0.2) 0%, rgba(0,0,0,0.1) 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .game-switcher {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            padding: 10px 25px;
+            border-radius: 60px;
+            border: 1px solid #fbbf24;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .game-switch-btn {
+            padding: 12px 32px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+
+        .game-switch-btn.active {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #0f172a;
+            box-shadow: 0 0 20px rgba(251,191,36,0.5);
+        }
+
+        .game-switch-btn:hover:not(.active) {
+            background: rgba(251,191,36,0.3);
+            transform: scale(1.02);
+        }
+
+        .games-container {
+            width: 100%;
+            max-width: 1400px;
+            overflow: hidden;
+            position: relative;
+            margin-top: 90px;
+        }
+
+        .games-slider {
+            display: flex;
+            transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+            width: 200%;
+        }
+
+        .game-panel {
+            width: 50%;
+            padding: 0 15px;
+        }
+
+        .feud-container, .bingo-container {
+            width: 100%;
+            background: linear-gradient(145deg, rgba(15, 25, 45, 0.85), rgba(10, 20, 35, 0.9));
+            backdrop-filter: blur(3px);
+            border-radius: 48px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 1px solid rgba(255,215,0,0.4);
+        }
+
+        .language-bar {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 25, 45, 0.95));
+            padding: 12px 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .lang-btn {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #fbbf2440;
+            color: #fbbf24;
+            padding: 6px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .lang-btn.active {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #0f172a;
+        }
+
+        .lang-btn:hover {
+            transform: scale(1.02);
+            background: rgba(251,191,36,0.3);
+        }
+
+        .scoreboard {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 25, 45, 0.95));
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 3px solid #fbbf24;
+            gap: 15px;
+        }
+
+        .team {
+            background: rgba(0,0,0,0.5);
+            border-radius: 60px;
+            padding: 8px 20px;
+            text-align: center;
+            flex: 1;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .team.active {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            box-shadow: 0 0 20px rgba(251,191,36,0.5);
+        }
+
+        .team.active .team-name, .team.active .team-score { color: #0f172a; }
+        .team-name { font-size: 1.2rem; font-weight: 700; color: #fbbf24; }
+        .team-score { font-size: 2rem; font-weight: 800; color: white; }
+
+        .question-area {
+            background: linear-gradient(145deg, rgba(30, 42, 58, 0.8), rgba(15, 23, 42, 0.9));
+            margin: 20px;
+            border-radius: 40px;
+            padding: 25px 15px;
+            text-align: center;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #ffefc0;
+            text-shadow: 2px 2px 0 #b45309;
+        }
+
+        .answer-input-area {
+            margin: 0 20px 20px;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.7), rgba(26, 37, 56, 0.8));
+            border-radius: 80px;
+            padding: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .answer-field {
+            flex: 2;
+            min-width: 200px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 60px;
+            background: #14395d;
+            color: white;
+            box-shadow: 0 6px 0 #0a1e32;
+            transition: all 0.2s;
+        }
+
+        .answer-field:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 #0a1e32;
+            background: #1a4a7a;
+            outline: none;
+        }
+
+        .answer-field::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .guess-btn {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border: none;
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 60px;
+            cursor: pointer;
+            color: #0f172a;
+            box-shadow: 0 5px 0 #b45309;
+            transition: all 0.2s;
+        }
+
+        .guess-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #b45309;
+        }
+
+        .answers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+            padding: 15px 20px;
+        }
+
+        .flip-card {
+            height: 85px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+            border-radius: 15px;
+        }
+
+        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+        }
+
+        .flip-card-front {
+            background: linear-gradient(145deg, #2d3a4e, #1e2a3a);
+            border: 2px solid #fbbf2440;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .flip-card-front::before { content: "❓"; font-size: 1.5rem; }
+        .flip-card-front span { font-size: 0.65rem; opacity: 0.7; }
+        .flip-card-back {
+            background: linear-gradient(145deg, #2b5f3a, #1d442b);
+            border: 2px solid #4ade80;
+            transform: rotateY(180deg);
+        }
+        .answer-text-back { font-size: 0.85rem; font-weight: 700; color: white; }
+        .answer-points-back { background: #fbbf24; color: #0f172a; padding: 3px 12px; border-radius: 30px; font-weight: 800; }
+
+        .strike-area {
+            background: rgba(15, 23, 42, 0.8);
+            margin: 0 20px 15px;
+            padding: 10px;
+            border-radius: 50px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .turn-indicator { background: #fbbf2420; padding: 5px 15px; border-radius: 40px; color: #fbbf24; }
+
+        .control-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px 20px;
+            border-top: 1px solid #334155;
+        }
+        .btn { padding: 8px 18px; font-weight: 700; border-radius: 40px; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.3); border: none; transition: all 0.2s; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-primary { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #0f172a; }
+        .btn-danger { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; }
+        .btn-success { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .btn-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
+        .btn-warning { background: linear-gradient(135deg, #4b5563, #374151); color: white; }
+
+        /* Bingo Specific */
+        .bingo-header { background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 25, 45, 0.95)); padding: 15px; text-align: center; border-bottom: 3px solid #fbbf24; }
+        .bingo-title { font-size: 1.8rem; font-weight: 800; color: #fbbf24; text-shadow: 2px 2px 0 #b45309; }
+        .bingo-subtitle { color: #cbd5e1; font-size: 0.8rem; }
+
+        .dice-area {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            margin: 15px;
+            padding: 20px;
+            border-radius: 30px;
+            text-align: center;
+            border: 2px solid #fbbf24;
+        }
+        .dice {
+            font-size: 4rem;
+            display: inline-block;
+            background: rgba(255,255,255,0.1);
+            padding: 15px 25px;
+            border-radius: 20px;
+            margin: 0 10px;
+            font-weight: bold;
+        }
+        .dice.rolling {
+            animation: rollDice 0.1s ease-out 12;
+        }
+        @keyframes rollDice {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(90deg) scale(1.1); }
+            50% { transform: rotate(180deg) scale(1.2); }
+            75% { transform: rotate(270deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        .roll-btn {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 5px 0 #b45309;
+            transition: all 0.2s;
+        }
+        .roll-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #b45309;
+        }
+        .last-number {
+            font-size: 1.2rem;
+            color: #fbbf24;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .called-numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin: 10px 15px;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 30px;
+            max-height: 90px;
+            overflow-y: auto;
+        }
+        .called-badge {
+            background: #fbbf24;
+            color: #0f172a;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .bingo-card {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            padding: 20px;
+            margin: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 24px;
+        }
+        .bingo-cell {
+            background: linear-gradient(145deg, #2d3a4e, #1e2a3a);
+            border: 2px solid #fbbf2440;
+            border-radius: 12px;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: white;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+        }
+        .bingo-cell.markable {
+            cursor: pointer;
+            opacity: 1;
+        }
+        .bingo-cell.markable:hover {
+            transform: scale(1.02);
+            border-color: #fbbf24;
+            background: linear-gradient(145deg, #fbbf24, #f59e0b);
+            color: #0f172a;
+        }
+        .bingo-cell.marked {
+            background: linear-gradient(145deg, #2b5f3a, #1d442b);
+            border-color: #4ade80;
+            cursor: default;
+            color: white;
+        }
+        .bingo-cell.marked::after {
+            content: "✓";
+            position: absolute;
+            top: 3px;
+            right: 5px;
+            font-size: 0.9rem;
+            color: #4ade80;
+        }
+        .bingo-cell.called-highlight {
+            background: linear-gradient(145deg, #fbbf24, #f59e0b);
+            color: #0f172a;
+            border-color: #fbbf24;
+            animation: cellPulse 0.4s ease;
+        }
+        @keyframes cellPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .bingo-cell.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .bingo-status {
+            text-align: center;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            background: rgba(0,0,0,0.3);
+            margin: 10px 15px;
+            border-radius: 40px;
+        }
+        .winner-announcement {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #0f172a;
+            padding: 10px;
+            border-radius: 40px;
+            font-weight: bold;
+            margin: 10px 20px;
+            text-align: center;
+        }
+        .smart-badge {
+            background: #fbbf2420;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            color: #fbbf24;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        .feedback-message {
+            text-align: center;
+            margin-top: 8px;
+            font-weight: 600;
+            color: #fbbf24;
+            font-size: 0.85rem;
+        }
+        @media (max-width: 700px) {
+            .game-switch-btn { padding: 6px 16px; font-size: 0.9rem; }
+            .dice { font-size: 2.5rem; padding: 8px 15px; }
+            .bingo-cell { font-size: 1rem; }
+            .question-text { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-switcher">
+        <button class="game-switch-btn active" data-game="feud">🎤 FAMILY FEUD</button>
+        <button class="game-switch-btn" data-game="bingo">🎲 DOMINO BINGO</button>
+    </div>
+
+    <div class="games-container">
+        <div class="games-slider" id="gamesSlider">
+            <div class="game-panel" id="feudPanel"><div class="feud-container" id="feudGame"></div></div>
+            <div class="game-panel" id="bingoPanel"><div class="bingo-container" id="bingoGame"></div></div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== TRANSLATIONS ====================
+        const translations = {
+            en: { team1: "🔥 TEAM GOLD", team2: "💎 TEAM DIAMOND", team1Turn: "🔥 TEAM GOLD's TURN", team2Turn: "💎 TEAM DIAMOND's TURN", strikes: "❌ STRIKES:", guessPlaceholder: "Type your guess... (2+ words match = WIN)", guessBtn: "🔍 GUESS & FLIP", cardHint: "click to flip", next: "🎲 NEXT", manualStrike: "💥 STRIKE", steal: "💰 STEAL", reveal: "🔓 REVEAL ALL", reset: "🔄 RESET", bingoTitle: "🎲 DOMINO BINGO 🎲", bingoSub: "Roll the dice! Click called numbers to mark them!", roll: "🎲 ROLL THE DICE 🎲", lastCalled: "Last called:", calledNumbers: "Called Numbers:", bingoReset: "🔄 NEW GAME", bingoStatus: "Click ROLL to start! Then click on numbers that were rolled!", bingoWin: "🎉 BINGO! YOU WIN! 🎉", cantMark: "⛔ Number not called yet! Roll the dice first!", gameWon: "🎉 GAME OVER! You won! Click NEW GAME to play again! 🎉" },
+            ht: { team1: "🔥 TEAM LÓ", team2: "💎 TEAM DYAMAN", team1Turn: "🔥 TOU TEAM LÓ", team2Turn: "💎 TOU TEAM DYAMAN", strikes: "❌ STRIKES:", guessPlaceholder: "Mete devinèt ou... (2+ mo ki matche = GENYEN)", guessBtn: "🔍 DEVINE", cardHint: "klike", next: "🎲 PWOCHEM", manualStrike: "💥 STRIKE", steal: "💰 VÒLÈ", reveal: "🔓 REVELE TOUT", reset: "🔄 RESET", bingoTitle: "🎲 DOMINO BINGO 🎲", bingoSub: "Voye des! Klike sou nimewo yo rele pou make yo!", roll: "🎲 VOYE DES 🎲", lastCalled: "Dènye nimewo:", calledNumbers: "Nimewo yo rele:", bingoReset: "🔄 NOUVO JWÈT", bingoStatus: "Klike sou VOYE DES pou kòmanse! Apre sa klike sou nimewo ki te rele!", bingoWin: "🎉 BINGO! OU GENYEN! 🎉", cantMark: "⛔ Nimewo pa rele ankò! Voye des an premye!", gameWon: "🎉 JWÈT FINI! Ou genyen! Klike NOUVO JWÈT pou jwe ankò! 🎉" },
+            fr: { team1: "🔥 ÉQUIPE OR", team2: "💎 ÉQUIPE DIAMANT", team1Turn: "🔥 TOUR ÉQUIPE OR", team2Turn: "💎 TOUR ÉQUIPE DIAMANT", strikes: "❌ STRIKES:", guessPlaceholder: "Tapez votre réponse... (2+ mots qui correspondent = GAGNÉ)", guessBtn: "🔍 DEVINER", cardHint: "cliquer", next: "🎲 SUIVANTE", manualStrike: "💥 STRIKE", steal: "💰 VOLER", reveal: "🔓 TOUT RÉVÉLER", reset: "🔄 RÉINITIALISER", bingoTitle: "🎲 DOMINO BINGO 🎲", bingoSub: "Lancez les dés! Cliquez sur les numéros appelés pour les marquer!", roll: "🎲 LANCER LES DÉS 🎲", lastCalled: "Dernier numéro:", calledNumbers: "Numéros appelés:", bingoReset: "🔄 NOUVELLE PARTIE", bingoStatus: "Cliquez sur LANCER pour commencer! Ensuite cliquez sur les numéros qui sont sortis!", bingoWin: "🎉 BINGO! VOUS AVEZ GAGNÉ! 🎉", cantMark: "⛔ Numéro pas encore appelé! Lancez les dés d'abord!", gameWon: "🎉 PARTIE TERMINÉE! Vous avez gagné! Cliquez NOUVELLE PARTIE pour rejouer! 🎉" },
+            es: { team1: "🔥 EQUIPO ORO", team2: "💎 EQUIPO DIAMANTE", team1Turn: "🔥 TURNO EQUIPO ORO", team2Turn: "💎 TURNO EQUIPO DIAMANTE", strikes: "❌ STRIKES:", guessPlaceholder: "Escribe tu respuesta... (2+ palabras que coinciden = GANAS)", guessBtn: "🔍 ADIVINAR", cardHint: "clic", next: "🎲 SIGUIENTE", manualStrike: "💥 STRIKE", steal: "💰 ROBAR", reveal: "🔓 REVELAR TODO", reset: "🔄 REINICIAR", bingoTitle: "🎲 DOMINO BINGO 🎲", bingoSub: "¡Lanza los dados! ¡Haz clic en los números llamados para marcarlos!", roll: "🎲 LANZAR DADOS 🎲", lastCalled: "Último número:", calledNumbers: "Números llamados:", bingoReset: "🔄 NUEVO JUEGO", bingoStatus: "¡Haz clic en LANZAR para empezar! ¡Luego haz clic en los números que salieron!", bingoWin: "🎉 ¡BINGO! ¡GANASTE! 🎉", cantMark: "⛔ ¡Número no llamado aún! ¡Lanza los dados primero!", gameWon: "🎉 ¡JUEGO TERMINADO! ¡Ganaste! ¡Haz clic NUEVO JUEGO para jugar de nuevo! 🎉" },
+            pt: { team1: "🔥 TIME OURO", team2: "💎 TIME DIAMANTE", team1Turn: "🔥 VEZ TIME OURO", team2Turn: "💎 VEZ TIME DIAMANTE", strikes: "❌ STRIKES:", guessPlaceholder: "Digite seu palpite... (2+ palavras que combinam = GANHA)", guessBtn: "🔍 PALPITAR", cardHint: "clique", next: "🎲 PRÓXIMA", manualStrike: "💥 STRIKE", steal: "💰 ROUBAR", reveal: "🔓 REVELAR TUDO", reset: "🔄 REINICIAR", bingoTitle: "🎲 DOMINO BINGO 🎲", bingoSub: "Jogue os dados! Clique nos números sorteados para marcá-los!", roll: "🎲 JOGAR DADOS 🎲", lastCalled: "Último número:", calledNumbers: "Números sorteados:", bingoReset: "🔄 NOVO JOGO", bingoStatus: "Clique em JOGAR para começar! Depois clique nos números que saíram!", bingoWin: "🎉 BINGO! VOCÊ GANHOU! 🎉", cantMark: "⛔ Número não sorteado ainda! Jogue os dados primeiro!", gameWon: "🎉 JOGO TERMINADO! Você ganhou! Clique NOVO JOGO para jogar novamente! 🎉" }
+        };
+
+        // Questions Data
+        const feudQuestions = {
+            en: [
+                { text: "Name something a man might say to his wife before he goes to work.", answers: [{ text: "I love you", points: 35 }, { text: "What's for dinner", points: 25 }, { text: "See you later", points: 18 }, { text: "Don't spend too much money", points: 12 }, { text: "Love you bye", points: 10 }] },
+                { text: "Name something that guys do in the man cave.", answers: [{ text: "Watch sports", points: 40 }, { text: "Play video games", points: 28 }, { text: "Nap", points: 15 }, { text: "Drink beer", points: 10 }, { text: "Talk trash", points: 7 }] },
+                { text: "Name something that people will start a fight for at a bar.", answers: [{ text: "Looking at someone's girlfriend", points: 38 }, { text: "The last beer", points: 24 }, { text: "Spilling a drink", points: 18 }, { text: "Talking trash about sports", points: 12 }, { text: "Cutting in line", points: 8 }] }
+            ],
+            ht: [
+                { text: "Nonmen yon bagay yon mari ta di madanm li avan li ale travay.", answers: [{ text: "Mwen renmen ou", points: 35 }, { text: "Dekouvri diri a poul pa si", points: 25 }, { text: "Na wè pita", points: 18 }, { text: "Pa depanse twòp kob", points: 12 }, { text: "Sa m ap manje a swe a", points: 10 }] },
+                { text: "Nonmen yon bagay gason Ayisyen fè anba tonèl la.", answers: [{ text: "Jwe domino", points: 28 }, { text: "Bwe tafia", points: 22 }, { text: "Tire kont", points: 16 }, { text: "Bay blag", points: 12 }, { text: "Fe zin", points: 8 }, { text: "Pale sou fi", points: 6 }, { text: "Danse", points: 8 }] }
+            ],
+            fr: [
+                { text: "Nommez quelque chose qu'un mari dirait à sa femme avant d'aller travailler.", answers: [{ text: "Je t'aime", points: 35 }, { text: "Qu'est-ce qu'on mange ce soir", points: 25 }, { text: "À plus tard", points: 18 }, { text: "Ne dépense pas trop d'argent", points: 12 }, { text: "Je t'aime au revoir", points: 10 }] }
+            ],
+            es: [
+                { text: "Nombre algo que un hombre le diría a su esposa antes de ir a trabajar.", answers: [{ text: "Te amo", points: 35 }, { text: "¿Qué hay de comer?", points: 25 }, { text: "Te veo después", points: 18 }, { text: "No gastes mucho dinero", points: 12 }, { text: "Te amo adiós", points: 10 }] }
+            ],
+            pt: [
+                { text: "Diga algo que um homem diria à sua esposa antes de ir trabalhar.", answers: [{ text: "Eu te amo", points: 35 }, { text: "O que tem pra jantar", points: 25 }, { text: "Até mais tarde", points: 18 }, { text: "Não gaste muito dinheiro", points: 12 }, { text: "Te amo tchau", points: 10 }] }
+            ]
+        };
+
+        let currentLang = 'en';
+        let feudState = { currentIndex: 0, answers: [], strikes: 0, currentTeam: 1, roundActive: true, scores: { 1: 0, 2: 0 } };
+        
+        // Bingo State
+        let bingoNumbers = [];
+        let bingoMarked = [];
+        let calledNumbers = [];
+        let lastCalledNumber = null;
+        let bingoWin = false;
+        let isRolling = false;
+
+        // Get slider element
+        const slider = document.getElementById('gamesSlider');
+        
+        // Game switcher buttons
+        const feudBtn = document.querySelector('.game-switch-btn[data-game="feud"]');
+        const bingoBtn = document.querySelector('.game-switch-btn[data-game="bingo"]');
+        
+        feudBtn.addEventListener('click', () => {
+            feudBtn.classList.add('active');
+            bingoBtn.classList.remove('active');
+            slider.style.transform = 'translateX(0%)';
+        });
+        
+        bingoBtn.addEventListener('click', () => {
+            bingoBtn.classList.add('active');
+            feudBtn.classList.remove('active');
+            slider.style.transform = 'translateX(-50%)';
+        });
+
+        // ==================== SMART MATCHING ====================
+        function smartMatch(guess, answerText) {
+            const normalize = (str) => str.toLowerCase().trim().replace(/[^\w\sàâçéèêëîïôûùüÿñãõáíóúü']/g, '');
+            const guessNorm = normalize(guess);
+            const answerNorm = normalize(answerText);
+            if (guessNorm === answerNorm) return true;
+            
+            const stopWords = ['a', 'an', 'and', 'are', 'as', 'at', 'be', 'but', 'by', 'for', 'from', 'have', 'he', 'her', 'his', 'in', 'is', 'it', 'its', 'me', 'my', 'of', 'on', 'or', 'she', 'so', 'that', 'the', 'their', 'them', 'to', 'was', 'we', 'with', 'you', 'your', 'de', 'la', 'le', 'les', 'et', 'un', 'une', 'que', 'qui', 'el', 'la', 'los', 'las', 'y', 'en', 'o', 'um', 'uma', 'do', 'da', 'no', 'na'];
+            const getWords = (str) => str.split(/\s+/).filter(w => w.length > 2 && !stopWords.includes(w));
+            const guessWords = getWords(guessNorm);
+            const answerWords = getWords(answerNorm);
+            
+            let matchCount = 0;
+            for (let gw of guessWords) {
+                for (let aw of answerWords) {
+                    if (gw === aw || (gw.includes(aw) && gw.length >= 3) || (aw.includes(gw) && aw.length >= 3)) {
+                        matchCount++;
+                        break;
+                    }
+                }
+            }
+            return matchCount >= 2;
+        }
+
+        // ==================== FAMILY FEUD ====================
+        function renderFeud() {
+            const container = document.getElementById('feudGame');
+            const t = translations[currentLang];
+            const qData = feudQuestions[currentLang] || feudQuestions.en;
+            const currentQ = qData[feudState.currentIndex % qData.length];
+            container.innerHTML = `
+                <div class="language-bar" id="feudLangBar">${Object.keys(translations).map(l => `<button class="lang-btn ${currentLang === l ? 'active' : ''}" data-lang="${l}">${l.toUpperCase()}</button>`).join('')}</div>
+                <div class="scoreboard"><div class="team ${feudState.currentTeam === 1 ? 'active' : ''}" id="feudTeam1"><div class="team-name">${t.team1}</div><div class="team-score" id="feudScore1">${feudState.scores[1]}</div></div><div class="team ${feudState.currentTeam === 2 ? 'active' : ''}" id="feudTeam2"><div class="team-name">${t.team2}</div><div class="team-score" id="feudScore2">${feudState.scores[2]}</div></div></div>
+                <div class="question-area"><div class="question-text">${currentQ?.text || "Loading..."}</div></div>
+                <div class="answer-input-area"><div class="input-group"><input type="text" id="feudAnswer" class="answer-field" placeholder="${t.guessPlaceholder}"><button id="feudGuessBtn" class="guess-btn">${t.guessBtn}</button></div><div id="feudFeedback" class="feedback-message"></div><div class="smart-badge">✨ SMART MATCH: Any 2+ matching words = WIN! ✨</div></div>
+                <div class="strike-area"><span>${t.strikes}</span><span id="feudStrikes">${feudState.strikes}</span><div class="turn-indicator" id="feudTurn">${feudState.currentTeam === 1 ? t.team1Turn : t.team2Turn}</div></div>
+                <div id="feudWinner" class="winner-announcement" style="display:none"></div>
+                <div class="answers-grid" id="feudGrid"></div>
+                <div class="control-panel"><button class="btn btn-primary" id="feudNext">${t.next}</button><button class="btn btn-danger" id="feudStrikeBtn">${t.manualStrike}</button><button class="btn btn-success" id="feudSteal">${t.steal}</button><button class="btn btn-purple" id="feudReveal">${t.reveal}</button><button class="btn btn-warning" id="feudReset">${t.reset}</button></div>
+            `;
+            feudState.answers = currentQ?.answers.map(a => ({ ...a, revealed: false })) || [];
+            renderFeudGrid();
+            attachFeudEvents();
+        }
+
+        function renderFeudGrid() {
+            const grid = document.getElementById('feudGrid');
+            if (!grid) return;
+            const t = translations[currentLang];
+            grid.innerHTML = feudState.answers.map((ans, i) => `<div class="flip-card ${ans.revealed ? 'flipped' : ''}" data-idx="${i}"><div class="flip-card-inner"><div class="flip-card-front"><span>???</span><span>${t.cardHint}</span></div><div class="flip-card-back"><span class="answer-text-back">${ans.text}</span><span class="answer-points-back">${ans.points}</span></div></div></div>`).join('');
+            document.querySelectorAll('#feudGrid .flip-card').forEach(card => {
+                card.addEventListener('click', () => { let i = parseInt(card.dataset.idx); if (feudState.roundActive && !feudState.answers[i].revealed) { feudState.answers[i].revealed = true; feudState.scores[feudState.currentTeam] += feudState.answers[i].points; updateFeudUI(); renderFeudGrid(); document.getElementById('feudFeedback').innerHTML = `✅ +${feudState.answers[i].points} points!`; if (feudState.answers.every(a => a.revealed)) feudState.roundActive = false; } });
+            });
+        }
+
+        function processFeudGuess() {
+            if (!feudState.roundActive) { document.getElementById('feudFeedback').innerHTML = "Round over! Press NEXT!"; return; }
+            const guess = document.getElementById('feudAnswer').value.trim();
+            if (!guess) { document.getElementById('feudFeedback').innerHTML = "Type an answer!"; return; }
+            
+            let matchIdx = -1;
+            for (let i = 0; i < feudState.answers.length; i++) {
+                if (!feudState.answers[i].revealed && smartMatch(guess, feudState.answers[i].text)) {
+                    matchIdx = i;
+                    break;
+                }
+            }
+            
+            if (matchIdx !== -1) {
+                feudState.answers[matchIdx].revealed = true;
+                feudState.scores[feudState.currentTeam] += feudState.answers[matchIdx].points;
+                updateFeudUI();
+                renderFeudGrid();
+                document.getElementById('feudFeedback').innerHTML = `✅ MATCH! +${feudState.answers[matchIdx].points} points!`;
+                if (feudState.answers.every(a => a.revealed)) feudState.roundActive = false;
+            } else {
+                feudState.strikes++;
+                updateFeudUI();
+                document.getElementById('feudFeedback').innerHTML = `❌ "${guess}" no match! STRIKE ${feudState.strikes}/3`;
+                if (feudState.strikes >= 3) {
+                    feudState.roundActive = false;
+                    document.getElementById('feudFeedback').innerHTML = "💥 3 STRIKES! Other team can STEAL!";
+                }
+            }
+            document.getElementById('feudAnswer').value = "";
+        }
+
+        function stealFeud() { if (!feudState.roundActive && feudState.strikes >= 3) { let stolen = 0; feudState.answers.forEach(a => { if (!a.revealed) { a.revealed = true; stolen += a.points; } }); feudState.scores[feudState.currentTeam === 1 ? 2 : 1] += stolen; updateFeudUI(); renderFeudGrid(); document.getElementById('feudFeedback').innerHTML = `💰 STEAL! ${stolen} points stolen!`; feudState.roundActive = false; feudState.strikes = 0; } }
+        function nextFeud() { const qData = feudQuestions[currentLang] || feudQuestions.en; feudState.currentIndex = (feudState.currentIndex + 1) % qData.length; feudState.currentTeam = feudState.currentTeam === 1 ? 2 : 1; feudState.strikes = 0; feudState.roundActive = true; renderFeud(); }
+        function resetFeud() { feudState = { currentIndex: 0, answers: [], strikes: 0, currentTeam: 1, roundActive: true, scores: { 1: 0, 2: 0 } }; renderFeud(); }
+        function updateFeudUI() { document.getElementById('feudScore1').textContent = feudState.scores[1]; document.getElementById('feudScore2').textContent = feudState.scores[2]; document.getElementById('feudStrikes').textContent = feudState.strikes; const t = translations[currentLang]; document.getElementById('feudTurn').textContent = feudState.currentTeam === 1 ? t.team1Turn : t.team2Turn; if (feudState.scores[1] > feudState.scores[2]) { let w = document.getElementById('feudWinner'); w.innerHTML = "🏆 TEAM GOLD WINS! 🏆"; w.style.display = "block"; } else if (feudState.scores[2] > feudState.scores[1]) { let w = document.getElementById('feudWinner'); w.innerHTML = "🏆 TEAM DIAMOND WINS! 🏆"; w.style.display = "block"; } }
+        
+        function attachFeudEvents() {
+            document.getElementById('feudGuessBtn')?.addEventListener('click', processFeudGuess);
+            document.getElementById('feudAnswer')?.addEventListener('keypress', e => { if (e.key === 'Enter') processFeudGuess(); });
+            document.getElementById('feudNext')?.addEventListener('click', nextFeud);
+            document.getElementById('feudStrikeBtn')?.addEventListener('click', () => { if (feudState.roundActive) { feudState.strikes++; updateFeudUI(); if (feudState.strikes >= 3) feudState.roundActive = false; } });
+            document.getElementById('feudSteal')?.addEventListener('click', stealFeud);
+            document.getElementById('feudReveal')?.addEventListener('click', () => { feudState.answers.forEach(a => a.revealed = true); renderFeudGrid(); });
+            document.getElementById('feudReset')?.addEventListener('click', resetFeud);
+            document.getElementById('feudTeam1')?.addEventListener('click', () => { if (feudState.roundActive) feudState.currentTeam = 1; updateFeudUI(); });
+            document.getElementById('feudTeam2')?.addEventListener('click', () => { if (feudState.roundActive) feudState.currentTeam = 2; updateFeudUI(); });
+            document.querySelectorAll('#feudLangBar .lang-btn').forEach(btn => {
+                btn.addEventListener('click', () => { currentLang = btn.dataset.lang; renderFeud(); renderBingo(); });
+            });
+        }
+
+        // ==================== BINGO FUNCTIONS ====================
+        function generateBingoCard() {
+            const numbers = [];
+            for (let i = 1; i <= 25; i++) numbers.push(i);
+            for (let i = numbers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+            }
+            return numbers;
+        }
+
+        function initBingo() {
+            bingoNumbers = generateBingoCard();
+            bingoMarked = new Array(25).fill(false);
+            calledNumbers = [];
+            lastCalledNumber = null;
+            bingoWin = false;
+            isRolling = false;
+        }
+
+        function rollDiceNumber() {
+            if (bingoWin) {
+                const t = translations[currentLang];
+                const statusDiv = document.getElementById('bingoStatusMsg');
+                if (statusDiv) statusDiv.innerHTML = t.gameWon;
+                return;
+            }
+            if (isRolling) return;
+            
+            isRolling = true;
+            const rollBtn = document.getElementById('rollDiceBtn');
+            const diceElement = document.getElementById('diceIcon');
+            
+            if (rollBtn) rollBtn.disabled = true;
+            
+            let rollCount = 0;
+            const interval = setInterval(() => {
+                const randomNum = Math.floor(Math.random() * 25) + 1;
+                if (diceElement) {
+                    diceElement.textContent = `🎲 ${randomNum}`;
+                    diceElement.classList.add('rolling');
+                    setTimeout(() => diceElement.classList.remove('rolling'), 100);
+                }
+                rollCount++;
+                if (rollCount >= 12) {
+                    clearInterval(interval);
+                    const finalNumber = Math.floor(Math.random() * 25) + 1;
+                    if (diceElement) {
+                        diceElement.textContent = `🎲 ${finalNumber}`;
+                        diceElement.classList.add('rolling');
+                        setTimeout(() => diceElement.classList.remove('rolling'), 100);
+                    }
+                    
+                    // Add to called numbers if not already called
+                    if (!calledNumbers.includes(finalNumber)) {
+                        calledNumbers.push(finalNumber);
+                        lastCalledNumber = finalNumber;
+                        
+                        // Highlight the number on the card
+                        const index = bingoNumbers.indexOf(finalNumber);
+                        if (index !== -1) {
+                            setTimeout(() => {
+                                const cells = document.querySelectorAll('.bingo-cell');
+                                if (cells[index]) {
+                                    cells[index].classList.add('called-highlight');
+                                    setTimeout(() => cells[index].classList.remove('called-highlight'), 500);
+                                }
+                            }, 50);
+                        }
+                    } else {
+                        lastCalledNumber = finalNumber;
+                    }
+                    
+                    renderBingoUI();
+                    if (rollBtn) rollBtn.disabled = false;
+                    isRolling = false;
+                }
+            }, 70);
+        }
+
+        function markBingoCell(index) {
+            if (bingoWin) {
+                const t = translations[currentLang];
+                const statusDiv = document.getElementById('bingoStatusMsg');
+                if (statusDiv) statusDiv.innerHTML = t.gameWon;
+                return;
+            }
+            
+            const number = bingoNumbers[index];
+            
+            // Check if number has been called
+            if (!calledNumbers.includes(number)) {
+                const t = translations[currentLang];
+                const statusDiv = document.getElementById('bingoStatusMsg');
+                if (statusDiv) {
+                    statusDiv.innerHTML = t.cantMark;
+                    statusDiv.style.background = "rgba(220,38,38,0.3)";
+                    setTimeout(() => {
+                        if (document.getElementById('bingoStatusMsg') && document.getElementById('bingoStatusMsg').innerHTML === t.cantMark) {
+                            document.getElementById('bingoStatusMsg').innerHTML = t.bingoStatus;
+                            document.getElementById('bingoStatusMsg').style.background = "rgba(0,0,0,0.3)";
+                        }
+                    }, 1500);
+                }
+                return;
+            }
+            
+            // Mark the number if not already marked
+            if (!bingoMarked[index]) {
+                bingoMarked[index] = true;
+                renderBingoUI();
+                checkBingoWinCondition();
+                
+                // Show success feedback
+                const t = translations[currentLang];
+                const statusDiv = document.getElementById('bingoStatusMsg');
+                if (statusDiv) {
+                    statusDiv.innerHTML = `✅ ${number} marked! Keep going!`;
+                    statusDiv.style.background = "rgba(16,185,129,0.3)";
+                    setTimeout(() => {
+                        if (document.getElementById('bingoStatusMsg') && !bingoWin) {
+                            document.getElementById('bingoStatusMsg').innerHTML = t.bingoStatus;
+                            document.getElementById('bingoStatusMsg').style.background = "rgba(0,0,0,0.3)";
+                        }
+                    }, 1000);
+                }
+            }
+        }
+
+        function checkBingoWinCondition() {
+            // Check rows
+            for (let r = 0; r < 5; r++) {
+                let win = true;
+                for (let c = 0; c < 5; c++) if (!bingoMarked[r * 5 + c]) win = false;
+                if (win) declareBingoWinner();
+            }
+            // Check columns
+            for (let c = 0; c < 5; c++) {
+                let win = true;
+                for (let r = 0; r < 5; r++) if (!bingoMarked[r * 5 + c]) win = false;
+                if (win) declareBingoWinner();
+            }
+            // Check diagonals
+            let diag1 = true, diag2 = true;
+            for (let i = 0; i < 5; i++) { if (!bingoMarked[i * 5 + i]) diag1 = false; }
+            for (let i = 0; i < 5; i++) { if (!bingoMarked[i * 5 + (4 - i)]) diag2 = false; }
+            if (diag1 || diag2) declareBingoWinner();
+        }
+
+        function declareBingoWinner() {
+            if (bingoWin) return;
+            bingoWin = true;
+            const t = translations[currentLang];
+            const statusDiv = document.getElementById('bingoStatusMsg');
+            if (statusDiv) {
+                statusDiv.innerHTML = t.bingoWin;
+                statusDiv.style.background = "linear-gradient(135deg, #fbbf24, #f59e0b)";
+                statusDiv.style.color = "#0f172a";
+                statusDiv.style.fontSize = "1.3rem";
+                statusDiv.style.fontWeight = "bold";
+            }
+            renderBingoUI();
+        }
+
+        function resetBingo() {
+            initBingo();
+            renderBingoUI();
+            const t = translations[currentLang];
+            const statusDiv = document.getElementById('bingoStatusMsg');
+            if (statusDiv) {
+                statusDiv.innerHTML = t.bingoStatus;
+                statusDiv.style.background = "rgba(0,0,0,0.3)";
+                statusDiv.style.color = "#fbbf24";
+                statusDiv.style.fontSize = "1rem";
+            }
+        }
+
+        function renderBingoUI() {
+            const container = document.getElementById('bingoGame');
+            if (!container) return;
+            const t = translations[currentLang];
+            
+            container.innerHTML = `
+                <div class="language-bar" id="bingoLangBar">${Object.keys(translations).map(l => `<button class="lang-btn ${currentLang === l ? 'active' : ''}" data-lang="${l}">${l.toUpperCase()}</button>`).join('')}</div>
+                <div class="bingo-header"><div class="bingo-title">${t.bingoTitle}</div><div class="bingo-subtitle">${t.bingoSub}</div></div>
+                <div class="dice-area">
+                    <div class="dice" id="diceIcon">🎲 🎲</div>
+                    <button class="roll-btn" id="rollDiceBtn">${t.roll}</button>
+                    <div class="last-number">${t.lastCalled} ${lastCalledNumber || '—'}</div>
+                </div>
+                <div class="called-numbers">
+                    <div style="width:100%; text-align:center; font-size:0.8rem; color:#fbbf24;">${t.calledNumbers}</div>
+                    ${calledNumbers.map(n => `<span class="called-badge">${n}</span>`).join('')}
+                </div>
+                <div class="bingo-card" id="bingoCardGrid"></div>
+                <div class="bingo-status" id="bingoStatusMsg">${bingoWin ? t.bingoWin : t.bingoStatus}</div>
+                <div class="bingo-controls"><button class="btn btn-primary" id="bingoResetBtn">${t.bingoReset}</button></div>
+            `;
+            
+            const cardGrid = document.getElementById('bingoCardGrid');
+            if (cardGrid) {
+                cardGrid.innerHTML = bingoNumbers.map((num, i) => {
+                    const isCalled = calledNumbers.includes(num);
+                    const isMarked = bingoMarked[i];
+                    let cellClass = 'bingo-cell';
+                    if (isMarked) {
+                        cellClass += ' marked';
+                    } else if (isCalled) {
+                        cellClass += ' markable';
+                    } else {
+                        cellClass += ' disabled';
+                    }
+                    return `<div class="${cellClass}" data-idx="${i}" data-num="${num}">${num}</div>`;
+                }).join('');
+                
+                // Add click event listeners to all markable cells
+                document.querySelectorAll('#bingoCardGrid .bingo-cell.markable').forEach(cell => {
+                    cell.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const idx = parseInt(cell.dataset.idx);
+                        markBingoCell(idx);
+                    });
+                });
+            }
+            
+            // Set up dice roll button
+            const rollBtn = document.getElementById('rollDiceBtn');
+            if (rollBtn) {
+                // Remove any existing listeners by cloning and replacing
+                const newRollBtn = rollBtn.cloneNode(true);
+                rollBtn.parentNode.replaceChild(newRollBtn, rollBtn);
+                newRollBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    rollDiceNumber();
+                });
+            }
+            
+            // Set up reset button
+            const resetBtn = document.getElementById('bingoResetBtn');
+            if (resetBtn) {
+                const newResetBtn = resetBtn.cloneNode(true);
+                resetBtn.parentNode.replaceChild(newResetBtn, resetBtn);
+                newResetBtn.addEventListener('click', () => resetBingo());
+            }
+            
+            // Language buttons
+            document.querySelectorAll('#bingoLangBar .lang-btn').forEach(btn => {
+                btn.addEventListener('click', () => { 
+                    currentLang = btn.dataset.lang; 
+                    renderFeud(); 
+                    renderBingoUI(); 
+                });
+            });
+            
+            if (bingoWin) {
+                const statusDiv = document.getElementById('bingoStatusMsg');
+                if (statusDiv) {
+                    statusDiv.innerHTML = t.bingoWin;
+                    statusDiv.style.background = "linear-gradient(135deg, #fbbf24, #f59e0b)";
+                }
+            }
+        }
+
+        function renderBingo() {
+            renderBingoUI();
+        }
+
+        // Initialize both games
+        initBingo();
+        renderFeud();
+        renderBingo();
+    </script>
+</body>
+</html>
